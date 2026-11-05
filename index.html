@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Consulta de Pagamentos - PAINEL RETROATIVO</title>
+
+    <!-- Bootstrap & Ícones -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <!-- Fonte -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+      :root {
+        --primary-color: #1e3a8a;
+        --secondary-color: #3b82f6;
+        --accent-color: #f59e0b;
+        --background-color: #ffffff;
+        --section-bg: #f8fafc;
+        --text-color: #1f2937;
+        --btn-color: #1e3a8a;
+        --border-color: #e5e7eb;
+      }
+      * { box-sizing: border-box; margin:0; padding:0 }
+      body {
+        font-family: "Poppins", sans-serif;
+        background: #f8fafc;
+        color: var(--text-color);
+        display: flex; flex-direction: column;
+        min-height: 100vh;
+      }
+
+      /* FORMULÁRIO */
+      .search-section {
+        padding: 60px 15px 40px;
+        text-align: center;
+        background: var(--section-bg);
+        margin: 0;
+      }
+      .section-wrapper h2 {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 8px;
+      }
+      .section-wrapper p {
+        margin-top: 8px;
+        color: #64748b;
+        font-size: 16px;
+        line-height: 1.6;
+      }
+      .accent-bar {
+        width: 80px;
+        height: 4px;
+        background: var(--accent-color);
+        margin: 24px auto 0;
+        border-radius: 9999px;
+      }
+      .search-container {
+        max-width: 500px;
+        margin: 32px auto;
+        background: var(--background-color);
+        padding: 24px;
+        border-radius: 16px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      }
+
+      .input-container {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        justify-content: center;
+      }
+      #search_input {
+        width: 250px;
+        font-size: 14px;
+      }
+      .form-control, .form-select {
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        padding: 10px 14px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        background: #fff;
+      }
+      .form-control:focus, .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+        outline: none;
+      }
+      .btn-custom {
+        background: var(--btn-color);
+        color: #fff;
+        font-weight: 600;
+        border: none;
+        border-radius: 12px;
+        padding: 10px 20px;
+        min-width: 110px;
+        font-size: 14px;
+        box-shadow: 0 2px 4px rgba(30, 58, 138, 0.2);
+        transition: all 0.3s ease;
+      }
+      .btn-custom:hover {
+        background: var(--primary-color);
+        color: #fff;
+        transform: translateY(-1px);
+        box-shadow: 0 3px 8px rgba(30, 58, 138, 0.3);
+      }
+
+      /* LOADER */
+      .text-center#loader-container { margin:20px 0 40px }
+      #loader {
+        width:3rem; height:3rem;
+        border-width:.25em;
+        color: var(--secondary-color);
+      }
+
+      /* RESULTADOS EM TABELA */
+      #results-container {
+        padding:0 15px 40px;
+      }
+      .result-wrapper {
+        max-width: 1000px;
+        margin: 0 auto 32px;
+        background: var(--background-color);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border: 1px solid var(--border-color);
+      }
+      .user-info-header {
+        background: var(--primary-color);
+        color: #fff;
+        padding: 16px 20px;
+        font-size: 1rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+      }
+      .user-info-header i {
+        margin-right: 12px;
+        font-size: 1.2rem;
+      }
+      .certificate-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--background-color);
+      }
+      .certificate-table thead {
+        background: #f8fafc;
+      }
+      .certificate-table th {
+        padding: 16px 12px;
+        font-weight: 600;
+        color: var(--primary-color);
+        text-align: center;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid var(--border-color);
+      }
+      .certificate-table td {
+        padding: 16px 12px;
+        border-top: 1px solid #f1f5f9;
+        font-size: 0.85rem;
+        line-height: 1.5;
+        text-align: center;
+        vertical-align: middle;
+      }
+      .certificate-table tbody tr:hover {
+        background: #f8fafc;
+        transition: background 0.2s ease;
+      }
+      .valor-cell {
+        font-weight: 700;
+        color: var(--primary-color);
+        white-space: nowrap;
+      }
+      .nota-aviso {
+        padding: 12px 20px;
+        background: #fff7e6;
+        color: #92400e;
+        font-size: 0.8rem;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      /* RODAPÉ */
+      .footer {
+        margin-top: auto;
+        background: var(--primary-color);
+        color: #fff;
+        padding: 32px 0;
+        font-size: 0.875rem;
+        border-top: 1px solid #e5e7eb;
+      }
+      .footer h5 {
+        font-size: 1rem;
+        margin-bottom: 20px;
+        color: #e2e8f0;
+      }
+      .footer a {
+        color: var(--accent-color);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s ease;
+      }
+      .footer a:hover {
+        color: #fbbf24;
+        text-decoration: underline;
+      }
+
+      /* BANNER */
+      .banner-container {
+        width: 100%;
+        text-align: center;
+        background: var(--background-color);
+        padding: 30px 0;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        margin-bottom: 0;
+      }
+      .banner-img {
+        max-width: 100%;
+        height: auto;
+        max-height: 180px;
+        object-fit: contain;
+        border-radius: 8px;
+      }
+
+      /* RESPONSIVO */
+      @media(max-width:768px) {
+        .search-container {
+          margin: 24px 16px;
+          padding: 20px;
+        }
+        .input-container {
+          flex-direction: column;
+          width: 100%;
+          gap: 16px;
+        }
+        #search_input {
+          width: 100%;
+        }
+        .banner-img { max-height: 150px }
+        .section-wrapper h2 { font-size: 20px }
+        .search-section { padding: 40px 15px 32px }
+        .result-wrapper {
+          margin: 0 16px 24px;
+          overflow-x: auto;
+        }
+        .certificate-table {
+          min-width: 560px;
+        }
+        .certificate-table th,
+        .certificate-table td {
+          padding: 12px 8px;
+          font-size: 0.75rem;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- BANNER -->
+    <div class="banner-container">
+      <img src="https://i.postimg.cc/dVfZXQv7/Primeira-Chance-PRINCIPAL.png" alt="Banner ParaíbaTEC" class="banner-img">
+    </div>
+
+    <!-- FORMULÁRIO -->
+    <section class="search-section">
+      <div class="section-wrapper">
+        <h2>CONSULTA DE PAGAMENTOS - PAINEL RETROATIVO</h2>
+        <p>Digite o seu CPF para consultar</p>
+        <div class="accent-bar"></div>
+      </div>
+      <div class="search-container">
+        <!-- Input e Botão -->
+        <div class="input-container">
+          <input
+            type="text" id="search_input"
+            class="form-control"
+            inputmode="numeric"
+            maxlength="14"
+            placeholder="000.000.000-00"
+            autocomplete="off"
+            oninput="formatInput()"
+          />
+          <button class="btn btn-custom" onclick="buscarCpf()">
+            <i class="fas fa-search"></i> Buscar
+          </button>
+        </div>
+      </div>
+      <div id="loader-container" class="text-center">
+        <div id="loader" class="spinner-border d-none" role="status"></div>
+      </div>
+    </section>
+
+    <!-- RESULTADOS -->
+    <div id="results-container"></div>
+
+    <!-- RODAPÉ -->
+    <footer class="footer">
+      <div class="footer" style="font-size: 10px; text-align: center;">
+        Governo do Estado da Paraíba<br />
+        Secretaria de Estado da Educação - SEE<br />
+        Gerência Executiva de Educação das Escolas Cidadãs Técnicas - GEECT<br />
+        Coordenação Geral do ParaíbaTEC e PRONATEC-PB<br />
+        Av. João da Mata, s/n - Bloco I - 5º Andar, Jaguaribe - João Pessoa/PB CEP
+        58015-900<br />
+        E-mail: geect@see.pb.gov.br<br />
+        Telefone: (83) 99144-1013<br />
+        <a href="http://paraiba.pb.gov.br/diretas/secretaria-da-educacao"
+          >paraiba.pb.gov.br/diretas/secretaria-da-educacao</a
+        >
+      </div>
+    </footer>
+
+    <!-- SCRIPTS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // ===== Configuração: leitura direta da planilha, sem API =====
+      // A planilha precisa estar compartilhada como "qualquer pessoa com o link".
+      const SHEET_ID = '15Lg_p9HWq6Gp2aGrrZMsmBvFOp0g5flrVvNA5u3_hKs';
+      const ABA = 'CONSULTA';
+      const COLUNAS = ['CPF', 'NOME', 'VALOR', 'AGENCIA', 'CONTA'];
+      const URL_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(ABA)}`;
+
+      let registros = [];
+      let promessaCarga = null;
+
+      // ===== Utilitários =====
+      function soDigitos(s) {
+        return String(s == null ? '' : s).replace(/\D/g, '');
+      }
+
+      // Completa com zeros à esquerda (a planilha pode guardar 9772078465 em vez de 09772078465)
+      function normalizaCpf(s) {
+        let d = soDigitos(s);
+        if (!d || d.length > 11) return '';
+        return d.padStart(11, '0');
+      }
+
+      function formataCpf(d) {
+        return d.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4');
+      }
+
+      function normalizaCabecalho(s) {
+        return String(s || '')
+          .normalize('NFD').replace(/[̀-ͯ]/g, '')
+          .replace(/\s+/g, ' ').trim().toUpperCase();
+      }
+
+      function escapa(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, c => (
+          { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+        ));
+      }
+
+      function limpaNumero(v) {
+        const t = String(v == null ? '' : v).trim();
+        return t.replace(/\.0+$/, '');
+      }
+
+      function formataValor(v) {
+        const t = String(v == null ? '' : v).trim();
+        if (!t) return '-';
+        if (/^R\$/i.test(t)) return t;
+        const n = Number(t.replace(/\./g, '').replace(',', '.'));
+        return isFinite(n)
+          ? n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+          : t;
+      }
+
+      // Leitor de CSV que respeita aspas e vírgulas dentro dos campos
+      function parseCsv(texto) {
+        const linhas = [];
+        let linha = [], campo = '', aspas = false;
+        for (let i = 0; i < texto.length; i++) {
+          const c = texto[i];
+          if (aspas) {
+            if (c === '"') {
+              if (texto[i + 1] === '"') { campo += '"'; i++; } else { aspas = false; }
+            } else { campo += c; }
+          } else if (c === '"') { aspas = true; }
+          else if (c === ',') { linha.push(campo); campo = ''; }
+          else if (c === '\n') { linha.push(campo); linhas.push(linha); linha = []; campo = ''; }
+          else if (c === '\r') { /* ignora */ }
+          else { campo += c; }
+        }
+        if (campo.length || linha.length) { linha.push(campo); linhas.push(linha); }
+        return linhas;
+      }
+
+      // ===== Carga da planilha (colunas localizadas pelo cabeçalho da aba CONSULTA) =====
+      function carregarPlanilha() {
+        if (promessaCarga) return promessaCarga;
+
+        promessaCarga = fetch(URL_CSV, { cache: 'no-store' })
+          .then(resp => {
+            if (!resp.ok) throw new Error(`Erro HTTP: ${resp.status}`);
+            return resp.text();
+          })
+          .then(txt => {
+            if (/^\s*<(!doctype|html)/i.test(txt)) {
+              throw new Error('Planilha sem acesso. Compartilhe como "qualquer pessoa com o link".');
+            }
+            const linhas = parseCsv(txt);
+            if (!linhas.length) throw new Error('A aba CONSULTA está vazia.');
+
+            const cab = linhas[0].map(normalizaCabecalho);
+            const idx = {};
+            const faltando = [];
+            COLUNAS.forEach(nome => {
+              const i = cab.indexOf(nome);
+              if (i < 0) faltando.push(nome); else idx[nome] = i;
+            });
+            if (faltando.length) {
+              throw new Error(`Colunas não encontradas na aba ${ABA}: ${faltando.join(', ')}`);
+            }
+
+            registros = [];
+            for (let i = 1; i < linhas.length; i++) {
+              const l = linhas[i];
+              const cpf = normalizaCpf(l[idx.CPF]);
+              if (!cpf) continue;
+              registros.push({
+                cpf: cpf,
+                nome: String(l[idx.NOME] || '').trim(),
+                valor: l[idx.VALOR],
+                agencia: limpaNumero(l[idx.AGENCIA]),
+                conta: limpaNumero(l[idx.CONTA])
+              });
+            }
+          })
+          .catch(err => {
+            promessaCarga = null; // permite tentar de novo na próxima busca
+            throw err;
+          });
+
+        return promessaCarga;
+      }
+
+      // ===== Formatação do campo =====
+      function formatInput() {
+        const input = document.getElementById("search_input");
+        const d = soDigitos(input.value).slice(0, 11);
+        let m = d;
+        if (d.length > 9) m = d.replace(/^(\d{3})(\d{3})(\d{3})(\d{1,2})$/, '$1.$2.$3-$4');
+        else if (d.length > 6) m = d.replace(/^(\d{3})(\d{3})(\d{1,3})$/, '$1.$2.$3');
+        else if (d.length > 3) m = d.replace(/^(\d{3})(\d{1,3})$/, '$1.$2');
+        input.value = m;
+      }
+
+      // ===== Alertas =====
+      function showAlert(msg) {
+        Swal.fire({
+          icon: "warning",
+          title: "Atenção",
+          text: msg,
+          confirmButtonColor: '#1e3a8a'
+        });
+      }
+
+      function showError(msg) {
+        Swal.fire({
+          icon: "error",
+          title: "Erro",
+          text: msg,
+          timer: 4000,
+          confirmButtonColor: '#1e3a8a'
+        });
+      }
+
+      function showSuccess(msg) {
+        Swal.fire({
+          icon: "success",
+          title: "Sucesso",
+          text: msg,
+          timer: 3000,
+          confirmButtonColor: '#1e3a8a'
+        });
+      }
+
+      // ===== Tabela de resultados =====
+      function createResultTable(dados) {
+        if (!dados || dados.length === 0) return null;
+
+        const primeiro = dados[0];
+        const headerInfo = `<i class="fas fa-user"></i>${escapa(primeiro.nome || 'Nome não informado')}`;
+        const semBanco = dados.some(d =>
+          (d.agencia === '0' || d.agencia === '') && (d.conta === '0' || d.conta === '')
+        );
+
+        let html = `
+          <div class="result-wrapper">
+            <div class="user-info-header">${headerInfo}</div>
+            <table class="certificate-table">
+              <thead>
+                <tr>
+                  <th>CPF</th>
+                  <th>Nome</th>
+                  <th>Valor</th>
+                  <th>Agência</th>
+                  <th>Conta</th>
+                </tr>
+              </thead>
+              <tbody>
+        `;
+
+        dados.forEach(item => {
+          html += `
+            <tr>
+              <td>${escapa(formataCpf(item.cpf))}</td>
+              <td>${escapa(item.nome || '-')}</td>
+              <td class="valor-cell">${escapa(formataValor(item.valor))}</td>
+              <td>${escapa(item.agencia || '-')}</td>
+              <td>${escapa(item.conta || '-')}</td>
+            </tr>
+          `;
+        });
+
+        html += `
+              </tbody>
+            </table>
+            ${semBanco ? '<div class="nota-aviso"><i class="fas fa-triangle-exclamation"></i>Agência e conta constam como zero na planilha. Confirme os dados bancários antes do pagamento.</div>' : ''}
+          </div>
+        `;
+
+        return html;
+      }
+
+      // ===== Busca principal =====
+      async function buscarCpf() {
+        const searchInput = document.getElementById("search_input").value;
+        const loader = document.getElementById("loader");
+        const resultsContainer = document.getElementById("results-container");
+
+        // Validações
+        if (!searchInput.trim()) {
+          showAlert("Digite um CPF para realizar a busca.");
+          return;
+        }
+
+        const cleanValue = soDigitos(searchInput);
+        if (cleanValue.length < 9 || cleanValue.length > 11) {
+          showAlert("CPF deve ter 11 dígitos.");
+          return;
+        }
+        const cpf = normalizaCpf(cleanValue);
+
+        loader.classList.remove("d-none");
+        resultsContainer.innerHTML = "";
+
+        try {
+          await carregarPlanilha();
+          loader.classList.add("d-none");
+
+          const achados = registros.filter(r => r.cpf === cpf);
+
+          if (achados.length === 0) {
+            showError("CPF não encontrado na base de dados.");
+            return;
+          }
+
+          const resultTable = createResultTable(achados);
+          if (resultTable === null) {
+            showError("Erro ao processar os dados retornados.");
+          } else {
+            resultsContainer.innerHTML = resultTable;
+            showSuccess(`${achados.length} registro(s) encontrado(s)!`);
+          }
+
+        } catch (error) {
+          console.error('Erro na leitura da planilha:', error);
+          loader.classList.add("d-none");
+          showError(error && error.message ? error.message : "Erro de conexão. Tente novamente mais tarde.");
+        }
+      }
+
+      // Enter = buscar
+      document.getElementById("search_input")
+        .addEventListener("keypress", e => {
+          if (e.key === "Enter") buscarCpf();
+        });
+
+      // Pré-carrega a planilha ao abrir a página (erros aparecem só na hora da busca)
+      document.addEventListener('DOMContentLoaded', function() {
+        carregarPlanilha().catch(() => {});
+      });
+    </script>
+  </body>
+</html>
